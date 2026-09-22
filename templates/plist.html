@@ -108,7 +108,7 @@
         <div class="side-card profile-card">
             <img src="{{ blogBase['avatarUrl'] }}" class="avatar" alt="avatar">
             <div class="profile-info">
-                <div class="profile-name">{{ blogBase['displayTitle'] }}</div>
+                <div class="profile-name">{{ blogBase.get('userId', blogBase['displayTitle']) }}</div>
                 <div class="profile-bio">{{ blogBase['subTitle'] }}</div>
             </div>
             <div class="profile-stats">

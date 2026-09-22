@@ -12,9 +12,9 @@
         (function(){
             try{
                 var params=new URLSearchParams(location.search);
-                if(params.get('admin')==='0'){localStorage.setItem('meek_hide_owner','1');}
-                if(params.get('admin')==='1'){localStorage.removeItem('meek_hide_owner');}
-                if(localStorage.getItem('meek_hide_owner')==='1'){document.documentElement.classList.add('hide-owner-ui');}
+                if(params.get('admin')==='1'){localStorage.setItem('meek_admin','1');}
+                if(params.get('admin')==='0'){localStorage.removeItem('meek_admin');}
+                if(localStorage.getItem('meek_admin')==='1'){document.documentElement.classList.add('is-admin');}
             }catch(e){}
         })();
     </script>
@@ -148,8 +148,10 @@
         .fab svg{width:16px;height:16px;}
         #writeFab{bottom:20px;background:var(--blog-accent);border-color:var(--blog-accent);color:#123024;}
         #bgFab{bottom:74px;}
-        html.hide-owner-ui #writeFab{display:none!important;}
-        html.hide-owner-ui a[title="Issue"]{display:none!important;}
+        html:not(.is-admin) #writeFab{display:none!important;}
+        html:not(.is-admin) #bgFab{display:none!important;}
+        html:not(.is-admin) #bgPanel{display:none!important;}
+        html:not(.is-admin) a[title="Issue"]{display:none!important;}
         #bgPanel{position:fixed;right:18px;bottom:132px;width:min(92vw,340px);z-index:61;display:none;padding:16px;border-radius:16px;border:1px solid var(--blog-border);background:var(--blog-card);box-shadow:var(--blog-shadow);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);}
         #bgPanel.open{display:block;}
         #bgPanel .bg-head{display:flex;align-items:center;justify-content:space-between;font-weight:650;margin-bottom:4px;}
@@ -201,9 +203,9 @@
         <div class="bg-head"><span>背景设置</span><button id="bgClose" type="button" title="关闭">×</button></div>
         <div class="bg-row"><label class="bg-file">📷 从手机/电脑选图<input id="bgFile" type="file" accept="image/*"></label></div>
         <div class="bg-row"><input id="bgUrl" type="text" placeholder="或粘贴图片链接 https://..."></div>
-        <div class="bg-row"><button id="bgApply" class="bg-btn primary" type="button">应用链接</button><button id="bgReset" class="bg-btn" type="button">恢复默认</button></div>
+        <div class="bg-row"><button id="bgApply" class="bg-btn primary" type="button">本地预览</button><button id="bgCopy" class="bg-btn" type="button">复制全站配置</button><button id="bgReset" class="bg-btn" type="button">恢复默认</button></div>
         <div class="bg-row"><span style="font-size:13px;color:var(--blog-muted);white-space:nowrap;">遮罩</span><input id="bgDim" type="range" min="0" max="80" step="5" value="38"></div>
-        <div class="bg-hint">本地设置只保存在这台设备；想改全站默认背景，编辑 config.json 里的 backgroundImage。</div>
+        <div class="bg-hint">「本地预览」只对这台设备生效；想让所有访客都看到，点「复制全站配置」，把内容粘贴到 config.json 的 backgroundImage 后提交，站点会自动重建。</div>
     </div>
 </body>
 <script>
@@ -344,6 +346,19 @@ console.log("\n %c Gmeek {{ blogBase['GMEEK_VERSION'] }} https://github.com/Meek
         if(url){url.value='';}
         if(dim){dim.value=38;}
     });
+    var copyBtn=document.getElementById('bgCopy');
+    if(copyBtn){
+        copyBtn.addEventListener('click',function(){
+            var u=(url&&url.value.trim())||readStore(K_BG)||'';
+            if(!u||u.slice(0,5)==='data:'){
+                alert('请先在上面的输入框里粘贴一个图片链接（https://...）。\n\n从相册选的图片只在这台设备预览；要让所有访客都看到，请先把图片上传到仓库的 images/ 目录，再粘贴它的链接。');
+                return;
+            }
+            var snippet='"backgroundImage":"'+u.replace(/"/g,'')+'"';
+            var show=function(){alert('已生成全站配置：\n\n'+snippet+'\n\n在手机上打开 config.json，用这一行替换原来的 backgroundImage，提交后站点会自动重建。');};
+            if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(snippet).then(show,show);}else{show();}
+        });
+    }
     if(dim){
         dim.addEventListener('input',function(){
             setDim(dim.value);
