@@ -626,6 +626,20 @@ for(var i=0;i<iconPost.length;i++){
 </script>
 <script>
 (function () {
+    Array.prototype.slice.call(document.querySelectorAll('.post-card-desc')).forEach(function (el) {
+        var t = el.textContent || '';
+        t = t.replace(/!\[[^\]]*\]\([^)]*\)/g, ' ');
+        t = t.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
+        t = t.replace(/<\/?[a-zA-Z][^>]*>/g, ' ');
+        t = t.replace(/(\*\*|__)(.*?)\1/g, '$2');
+        t = t.replace(/(\*|_)([^*_]+)\1/g, '$2');
+        t = t.replace(/`([^`]*)`/g, '$1');
+        t = t.replace(/^\s{0,3}#{1,6}\s*/gm, '');
+        t = t.replace(/^\s*>\s?/gm, '');
+        t = t.replace(/\s+/g, ' ').trim();
+        if (!t) { el.style.display = 'none'; }
+        else { el.textContent = t; }
+    });
     var cards = Array.prototype.slice.call(document.querySelectorAll('.post-card'));
     var tagBox = document.getElementById('tagList');
     var tagTotal = document.getElementById('tagTotal');

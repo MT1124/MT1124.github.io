@@ -43,6 +43,17 @@
     }).then(function (r) { return r.json(); });
   }
 
+  function pagesBase() {
+    var parts = (REPO || '').split('/');
+    var owner = parts[0] || '';
+    var name = parts[1] || '';
+    if (!owner) { return ''; }
+    if (name.toLowerCase() === (owner.toLowerCase() + '.github.io')) {
+      return 'https://' + owner + '.github.io/';
+    }
+    return 'https://' + owner + '.github.io/' + name + '/';
+  }
+
   function openApp() {
     var a = $('pubApp'); if (!a) return;
     a.classList.add('open'); a.setAttribute('aria-hidden', 'false');
@@ -140,10 +151,11 @@
         var b64 = (dataUrl || '').split(',')[1];
         if (!b64) { reject(new Error('图片读取失败')); return; }
         var base = (file.name || 'img').replace(/\.[^.]+$/, '').replace(/[^\w\u4e00-\u9fa5\-]+/g, '_').slice(0, 40) || 'img';
-        var path = 'images/' + base + '-' + Date.now() + '-' + i + '.jpg';
-        setMsg('pubMsg', '正在上传图片 ' + (i + 1) + '/' + n + '…');
+        var fileName = base + '-' + Date.now() + '-' + i + '.jpg';
+        var path = 'pwa/images/' + fileName;
+        setMsg('pubMsg', '正在上传图片 ' + (i + 1) + '/' + n + '…（发布后约 1 分钟可在站点访问）');
         gh('PUT', '/repos/' + REPO + '/contents/' + path, { message: 'upload image ' + base, content: b64, branch: 'main' })
-          .then(function () { resolve('https://raw.githubusercontent.com/' + REPO + '/main/' + path); })
+          .then(function () { resolve(pagesBase() + 'images/' + fileName); })
           .catch(reject);
       });
     });
@@ -284,7 +296,7 @@
             });
           });
         });
-        chain.then(function () { setMsg('pubMsg', '图片已上传并插入正文', 'ok'); img.value = ''; })
+        chain.then(function () { setMsg('pubMsg', '图片已上传并插入正文（约 1 分钟后站点上可访问）', 'ok'); img.value = ''; })
              .catch(function (e) { setMsg('pubMsg', '图片上传失败：' + e.message, 'err'); img.value = ''; });
       });
     }
