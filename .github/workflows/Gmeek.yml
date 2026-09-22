@@ -8,6 +8,7 @@ on:
     paths:
       - 'config.json'
       - 'templates/**'
+      - 'pwa/**'
   schedule:
     - cron: "0 16 * * *"
     
@@ -55,6 +56,7 @@ jobs:
           cp -r ./* /opt/Gmeek/
           cd /opt/Gmeek/
           python Gmeek.py ${{ secrets.GITHUB_TOKEN }} ${{ github.repository }} --issue_number '${{ github.event.issue.number }}'
+          if [ -d /opt/Gmeek/pwa ]; then cp -a /opt/Gmeek/pwa/. /opt/Gmeek/docs/; fi
           cp -a /opt/Gmeek/docs ${{ github.workspace }} 
           cp -a /opt/Gmeek/backup ${{ github.workspace }} 
           cp /opt/Gmeek/blogBase.json ${{ github.workspace }} 

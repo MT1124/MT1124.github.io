@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="theme-color" content="#eef2f8">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="{{ blogBase.get('userId', blogBase['title']) }}">
     {{ blogBase['primerCSS'] }}
     {{ blogBase['allHead'] }}
     <link rel="icon" href="{{ blogBase['faviconUrl'] }}">
@@ -151,6 +157,7 @@
         html:not(.is-admin) #writeFab{display:none!important;}
         html:not(.is-admin) #bgFab{display:none!important;}
         html:not(.is-admin) #bgPanel{display:none!important;}
+        html:not(.is-admin) #pubApp{display:none!important;}
         html:not(.is-admin) a[title="Issue"]{display:none!important;}
         #bgPanel{position:fixed;right:18px;bottom:132px;width:min(92vw,340px);z-index:61;display:none;padding:16px;border-radius:16px;border:1px solid var(--blog-border);background:var(--blog-card);box-shadow:var(--blog-shadow);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);}
         #bgPanel.open{display:block;}
@@ -180,6 +187,8 @@
             #bgPanel{right:10px;left:10px;bottom:126px;width:auto;}
         }
     </style>
+    <link rel="stylesheet" href="/pub.css">
+    <script>window.PUB_REPO="{{ blogBase.get('repoName','MT1124/MT1124.github.io') }}";</script>
 </head>
 {% block style %}{% endblock %}
 
@@ -207,6 +216,60 @@
         <div class="bg-row"><span style="font-size:13px;color:var(--blog-muted);white-space:nowrap;">遮罩</span><input id="bgDim" type="range" min="0" max="80" step="5" value="38"></div>
         <div class="bg-hint">「本地预览」只对这台设备生效；想让所有访客都看到，点「复制全站配置」，把内容粘贴到 config.json 的 backgroundImage 后提交，站点会自动重建。</div>
     </div>
+
+    <div id="pubApp" aria-hidden="true">
+        <div class="pub-sheet" role="dialog" aria-modal="true" aria-label="写文章">
+            <div class="pub-head">
+                <div class="pub-tabs">
+                    <button type="button" id="pubTabNew" class="pub-tab active">发新文章</button>
+                    <button type="button" id="pubTabManage" class="pub-tab">管理文章</button>
+                </div>
+                <button type="button" id="pubClose" class="pub-x" title="关闭">×</button>
+            </div>
+
+            <div id="pubSetup">
+                <p class="pub-note">首次使用需要填一个 GitHub Token（只保存在你本机浏览器，不会上传到任何地方）。<br>
+                在 GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens 新建，仓库只选
+                <b>{{ blogBase.get('repoName','MT1124/MT1124.github.io') }}</b>，权限给 <b>Contents: Read and write</b> 与 <b>Issues: Read and write</b>，然后粘贴到下面。</p>
+                <input id="pubToken" class="pub-input" type="password" placeholder="github_pat_..." autocomplete="off">
+                <div class="pub-row">
+                    <button type="button" id="pubSave" class="pub-btn primary">保存并连接</button>
+                    <a class="pub-btn" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">去创建 Token</a>
+                </div>
+                <div id="pubSetupMsg" class="pub-msg"></div>
+            </div>
+
+            <div id="pubForm" hidden>
+                <input id="pubTitle" class="pub-input" placeholder="文章标题">
+                <div class="pub-note" style="margin:8px 0 0;">标签（第一个决定分类和文件名，可多选）</div>
+                <div id="pubLabels" class="pub-labels"></div>
+                <div class="pub-row">
+                    <input id="pubNewLabel" class="pub-input" style="flex:1;min-width:120px;" placeholder="新建标签（可留空）">
+                    <button type="button" id="pubAddLabel" class="pub-btn">添加</button>
+                </div>
+                <textarea id="pubBody" class="pub-textarea" placeholder="正文，支持 Markdown。可以用下面的按钮上传图片，会自动插入到正文。"></textarea>
+                <div class="pub-row">
+                    <label class="pub-btn pub-file">📷 插入图片<input id="pubImg" type="file" accept="image/*" multiple></label>
+                    <label class="pub-check"><input type="checkbox" id="pubTop"> 置顶</label>
+                </div>
+                <div class="pub-row">
+                    <button type="button" id="pubSubmit" class="pub-btn primary">发布文章</button>
+                    <button type="button" id="pubCancelEdit" class="pub-btn" hidden>取消编辑</button>
+                    <a class="pub-btn" href="https://github.com/{{ blogBase.get('repoName','MT1124/MT1124.github.io') }}/issues/new" target="_blank" rel="noopener">用 GitHub 网页写</a>
+                </div>
+                <div id="pubMsg" class="pub-msg"></div>
+            </div>
+
+            <div id="pubManage" hidden>
+                <div class="pub-row">
+                    <button type="button" id="pubRefresh" class="pub-btn">刷新列表</button>
+                    <span id="pubManageMsg" class="pub-msg"></span>
+                </div>
+                <div id="pubPosts" class="pub-posts"></div>
+            </div>
+        </div>
+    </div>
+    <script src="/pub.js" defer></script>
 </body>
 <script>
 var IconList={{ IconList }};
