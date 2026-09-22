@@ -4,6 +4,10 @@ on:
   workflow_dispatch:
   issues:
     types: [opened, edited]
+  push:
+    paths:
+      - 'config.json'
+      - 'templates/**'
   schedule:
     - cron: "0 16 * * *"
     
