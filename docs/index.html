@@ -7,7 +7,17 @@
     <meta name="theme-color" content="#eef2f8">
     <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
     
-    <link rel="icon" href="https://avatars.githubusercontent.com/u/216737748?v=4&size=64"><script>
+    <link rel="icon" href="https://avatars.githubusercontent.com/u/216737748?v=4&size=64">
+    <script>
+        (function(){
+            try{
+                var params=new URLSearchParams(location.search);
+                if(params.get('admin')==='1'){localStorage.setItem('meek_admin','1');}
+                if(params.get('admin')==='0'){localStorage.removeItem('meek_admin');}
+                if(localStorage.getItem('meek_admin')==='1'){document.documentElement.classList.add('is-admin');}
+            }catch(e){}
+        })();
+    </script><script>
         let theme = localStorage.getItem("meek_theme") || "light";
         document.documentElement.setAttribute("data-color-mode", theme);
     </script>
@@ -114,6 +124,8 @@
         .fab svg{width:16px;height:16px;}
         #writeFab{bottom:20px;}
         #bgFab{bottom:74px;}
+        html:not(.is-admin) #writeFab{display:none!important;}
+        html:not(.is-admin) a[title="Issue"]{display:none!important;}
         #bgPanel{position:fixed;right:18px;bottom:132px;width:min(92vw,340px);z-index:61;display:none;padding:16px;border-radius:16px;border:1px solid var(--blog-border);background:var(--blog-card);box-shadow:var(--blog-shadow);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);}
         #bgPanel.open{display:block;}
         #bgPanel .bg-head{display:flex;align-items:center;justify-content:space-between;font-weight:650;margin-bottom:4px;}
