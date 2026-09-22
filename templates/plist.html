@@ -238,19 +238,19 @@ document.getElementById("{{ blogBase['singeListJson'][num]['postTitle'] }}").set
         var v = decodeURIComponent(m[1]);
         return v === 'all' ? '' : v;
     }
-    function chip(name, count, active) {
+    function chip(name, count, active, value) {
         var b = document.createElement('button');
         b.type = 'button';
         b.className = 'tag-chip' + (active ? ' active' : '');
         b.setAttribute('data-tag', name);
         b.innerHTML = esc(name) + ' <span class="tag-count">' + count + '</span>';
-        b.onclick = function () { apply(name); };
+        b.onclick = function () { apply(value === undefined ? name : value); };
         return b;
     }
     function render(active) {
         if (!tagBox) { return; }
         tagBox.innerHTML = '';
-        tagBox.appendChild(chip('全部', totalPosts, !active));
+        tagBox.appendChild(chip('全部', totalPosts, !active, ''));
         var names = Object.keys(global).sort(function (a, b) {
             return (global[b] - global[a]) || a.localeCompare(b);
         });
@@ -305,12 +305,15 @@ document.getElementById("{{ blogBase['singeListJson'][num]['postTitle'] }}").set
         if (!data) { return; }
         var all = {};
         var keys = Object.keys(data);
+        var postCount = 0;
         keys.forEach(function (k) {
             var item = data[k] || {};
+            if (!item.postUrl) { return; }
+            postCount++;
             (item.labels || []).forEach(function (l) { all[l] = (all[l] || 0) + 1; });
         });
         global = all;
-        totalPosts = keys.length || totalPosts;
+        totalPosts = postCount || totalPosts;
         var active = currentTag();
         if (active) { apply(active); } else { render(''); }
     }).catch(function () {});
