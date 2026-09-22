@@ -203,7 +203,8 @@
 .list-layout{display:grid;grid-template-columns:252px minmax(0,1fr);gap:18px;align-items:start;}
 .side-card{background:var(--blog-card);border:1px solid var(--blog-border);border-radius:18px;backdrop-filter:blur(16px) saturate(1.15);-webkit-backdrop-filter:blur(16px) saturate(1.15);box-shadow:var(--blog-shadow);}
 
-.profile-card{position:sticky;top:96px;display:flex;flex-direction:column;align-items:center;text-align:center;padding:26px 20px 22px;}
+.sidebar-sticky{position:sticky;top:96px;display:flex;flex-direction:column;gap:14px;}
+.profile-card{display:flex;flex-direction:column;align-items:center;text-align:center;padding:26px 20px 22px;}
 .profile-card .avatar{width:86px;height:86px;border-radius:50%!important;object-fit:cover;border:2px solid var(--blog-border);box-shadow:0 8px 22px rgba(63,158,115,.20);transition:transform .5s ease;}
 .profile-card .avatar:hover{transform:scale(1.05);}
 .profile-name{margin-top:14px;font-size:18px;font-weight:650;color:var(--blog-fg);}
@@ -212,6 +213,17 @@
 .stat{display:flex;flex-direction:column;align-items:center;}
 .stat-num{font-size:36px;font-weight:750;line-height:1;color:var(--blog-accent-strong);letter-spacing:-.5px;}
 .stat-label{margin-top:7px;font-size:12px;color:var(--blog-muted);letter-spacing:1px;}
+
+.tag-card{padding:18px 16px 16px;}
+.tag-card-title{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;font-size:14px;font-weight:650;color:var(--blog-fg);}
+.tag-card-title .tag-total{font-size:12px;font-weight:400;color:var(--blog-muted);}
+.tag-list{display:flex;flex-wrap:wrap;gap:8px;}
+.tag-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;border:1px solid var(--blog-border-soft);background:var(--blog-accent-soft);color:var(--blog-accent-strong);font-size:13px;line-height:1.6;cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease;}
+.tag-chip:hover{border-color:var(--blog-accent);}
+.tag-chip.active{background:var(--blog-accent);border-color:var(--blog-accent);color:#123024;font-weight:600;}
+.tag-chip .tag-count{font-size:11px;opacity:.7;}
+.tag-hint{margin:2px 4px 12px;font-size:12px;line-height:1.7;color:var(--blog-muted);display:none;}
+.tag-hint a{color:var(--blog-accent-strong);}
 
 .main-col{min-width:0;}
 .list-head{display:flex;align-items:baseline;justify-content:space-between;margin:2px 4px 12px;font-size:15px;font-weight:600;color:var(--blog-fg);}
@@ -236,6 +248,7 @@
     #header{max-width:100%;}
     #footer{max-width:100%;}
     .list-layout{grid-template-columns:1fr;gap:14px;}
+    .sidebar-sticky{position:static;gap:12px;}
     .profile-card{position:static;flex-direction:row;align-items:center;text-align:left;gap:14px;padding:16px;}
     .profile-card .avatar{width:56px!important;height:56px!important;flex:none;border-width:1px;}
     .profile-info{min-width:0;}
@@ -279,6 +292,7 @@
         <div id="content">
 <div class="list-layout">
     <aside class="sidebar">
+        <div class="sidebar-sticky">
         <div class="side-card profile-card">
             <img src="https://avatars.githubusercontent.com/u/216737748?v=4&size=64" class="avatar" alt="avatar">
             <div class="profile-info">
@@ -292,15 +306,21 @@
                 </div>
             </div>
         </div>
+        <div class="side-card tag-card">
+            <div class="tag-card-title"><span>文章标签</span><span class="tag-total" id="tagTotal"></span></div>
+            <div class="tag-list" id="tagList"></div>
+        </div>
+        </div>
     </aside>
 
     <main class="main-col">
         <div class="list-head">
-            <span>最新文章</span>
-            <span class="list-count">共 2 篇</span>
+            <span id="listTitle">最新文章</span>
+            <span class="list-count" id="listCount">共 2 篇</span>
         </div>
+        <div class="tag-hint" id="tagHint"></div>
         <div class="post-cards">
-        <article class="post-card">
+        <article class="post-card" data-labels="无意义">
                 <h3 class="post-card-title">
                     <a href="post/yi-jiu-zhi-shi-ce-shi.html">依旧只是测试</a>
                     
@@ -308,9 +328,9 @@
                 <p class="post-card-desc">人类需要很多次测试。</p>
                 <div class="post-card-meta">
                     <span class="meta-date">2026-09-22</span>
-                    <a class="meta-label" href="https://MT1124.github.io/tag.html#documentation">documentation</a>
+                    <a class="meta-label" href="https://MT1124.github.io/tag.html#无意义">无意义</a>
                 </div>
-            </article><article class="post-card">
+            </article><article class="post-card" data-labels="无意义">
                 <h3 class="post-card-title">
                     <a href="post/ce-shi.html">测试</a>
                     
@@ -318,7 +338,7 @@
                 <p class="post-card-desc">你好。</p>
                 <div class="post-card-meta">
                     <span class="meta-date">2026-09-22</span>
-                    <a class="meta-label" href="https://MT1124.github.io/tag.html#documentation">documentation</a>
+                    <a class="meta-label" href="https://MT1124.github.io/tag.html#无意义">无意义</a>
                 </div>
             </article>
         </div>
@@ -590,6 +610,116 @@ for(var i=0;i<iconPost.length;i++){
 
 
 
+</script>
+<script>
+(function () {
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.post-card'));
+    var tagBox = document.getElementById('tagList');
+    var tagTotal = document.getElementById('tagTotal');
+    var titleEl = document.getElementById('listTitle');
+    var countEl = document.getElementById('listCount');
+    var hintEl = document.getElementById('tagHint');
+    var baseTitle = titleEl ? titleEl.textContent.replace(/\s+/g, ' ').trim() : '最新文章';
+    var local = {};
+    var global = {};
+    var totalPosts = cards.length;
+
+    function esc(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+    cards.forEach(function (card) {
+        (card.getAttribute('data-labels') || '').split(',').forEach(function (t) {
+            t = t.trim();
+            if (t) { local[t] = (local[t] || 0) + 1; }
+        });
+    });
+    global = Object.assign({}, local);
+
+    function currentTag() {
+        var m = /^#tag-(.*)$/.exec(decodeURIComponent(location.hash || ''));
+        if (!m) { return ''; }
+        var v = decodeURIComponent(m[1]);
+        return v === 'all' ? '' : v;
+    }
+    function chip(name, count, active) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'tag-chip' + (active ? ' active' : '');
+        b.setAttribute('data-tag', name);
+        b.innerHTML = esc(name) + ' <span class="tag-count">' + count + '</span>';
+        b.onclick = function () { apply(name); };
+        return b;
+    }
+    function render(active) {
+        if (!tagBox) { return; }
+        tagBox.innerHTML = '';
+        tagBox.appendChild(chip('全部', totalPosts, !active));
+        var names = Object.keys(global).sort(function (a, b) {
+            return (global[b] - global[a]) || a.localeCompare(b);
+        });
+        names.forEach(function (n) { tagBox.appendChild(chip(n, global[n], active === n)); });
+        if (!names.length) {
+            var p = document.createElement('div');
+            p.className = 'tag-hint';
+            p.style.display = 'block';
+            p.textContent = '还没有标签';
+            tagBox.appendChild(p);
+        }
+        if (tagTotal) { tagTotal.textContent = names.length ? (names.length + ' 个标签') : ''; }
+    }
+    function apply(tag) {
+        var shown = 0;
+        cards.forEach(function (card) {
+            var labels = (card.getAttribute('data-labels') || '').split(',').map(function (s) { return s.trim(); });
+            var ok = !tag || labels.indexOf(tag) >= 0;
+            card.style.display = ok ? '' : 'none';
+            if (ok) { shown++; }
+        });
+        if (titleEl) { titleEl.textContent = tag ? ('标签：' + tag) : baseTitle; }
+        if (countEl) {
+            countEl.textContent = tag
+                ? ('本页 ' + shown + ' 篇 / 全站 ' + (global[tag] || shown) + ' 篇')
+                : ('共 ' + totalPosts + ' 篇');
+        }
+        if (hintEl) {
+            if (tag && shown === 0) {
+                hintEl.style.display = 'block';
+                hintEl.innerHTML = '本页没有「' + esc(tag) + '」标签的文章，<a href="/tag.html#' + encodeURIComponent(tag) + '">去标签页查看全部 →</a>';
+            } else if (tag && (global[tag] || 0) > shown) {
+                hintEl.style.display = 'block';
+                hintEl.innerHTML = '全站共 ' + global[tag] + ' 篇带「' + esc(tag) + '」的文章，<a href="/tag.html#' + encodeURIComponent(tag) + '">查看全部 →</a>';
+            } else {
+                hintEl.style.display = 'none';
+                hintEl.innerHTML = '';
+            }
+        }
+        var want = tag ? ('#tag-' + encodeURIComponent(tag)) : '#tag-all';
+        if (location.hash !== want) {
+            try { history.replaceState(null, '', want); } catch (e) { location.hash = want; }
+        }
+        render(tag);
+    }
+
+    var initial = currentTag();
+    render(initial);
+    if (initial) { apply(initial); }
+
+    fetch('/postList.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (data) {
+        if (!data) { return; }
+        var all = {};
+        var keys = Object.keys(data);
+        keys.forEach(function (k) {
+            var item = data[k] || {};
+            (item.labels || []).forEach(function (l) { all[l] = (all[l] || 0) + 1; });
+        });
+        global = all;
+        totalPosts = keys.length || totalPosts;
+        var active = currentTag();
+        if (active) { apply(active); } else { render(''); }
+    }).catch(function () {});
+})();
 </script>
 
 
