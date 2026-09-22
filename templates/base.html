@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="{{ blogBase['nightTheme'] }}" data-light-theme="{{ blogBase['dayTheme'] }}" lang={% if blogBase['i18n']=='CN' %}"zh-CN"{% elif blogBase['i18n']=='RU' %}"ru"{% else -%}"en"{%- endif -%}>
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="#eef2f8">
+    {{ blogBase['primerCSS'] }}
+    {{ blogBase['allHead'] }}
+    <link rel="icon" href="{{ blogBase['faviconUrl'] }}">
+    {%- if blogBase['themeMode']=='manual' -%}
+    <script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+    {%- endif -%}
+    {% block head %}{% endblock %}
+    <style>
+        :root{
+            --blog-max: 880px;
+            --blog-radius: 20px;
+            --blog-card: rgba(255,255,255,.86);
+            --blog-border: rgba(140,148,159,.28);
+            --blog-fg: var(--fgColor-default, #1f2328);
+            --blog-muted: var(--fgColor-muted, #656d76);
+            --blog-accent: #2f6feb;
+            --blog-bg-dim: .38;
+            --blog-shadow: 0 18px 50px rgba(31,35,40,.12);
+        }
+        html[data-color-mode="dark"]{
+            --blog-card: rgba(22,27,34,.86);
+            --blog-border: rgba(240,246,252,.14);
+            --blog-fg: #e6edf3;
+            --blog-muted: #9aa4af;
+            --blog-shadow: 0 18px 50px rgba(0,0,0,.55);
+        }
+        *{box-sizing:border-box;}
+        body{
+            margin:0;
+            padding:28px 16px 112px;
+            min-height:100vh;
+            color:var(--blog-fg);
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","HarmonyOS Sans SC","Noto Sans SC","Microsoft YaHei",sans-serif;
+            font-size:16px;
+            line-height:1.75;
+            background-color:var(--bgColor-default,#eef1f6);
+            background-image:var(--blog-bg-image,linear-gradient(160deg,#eef2f8 0%,#e6edfb 48%,#f3f5f9 100%));
+            background-size:cover;
+            background-position:center center;
+            background-attachment:fixed;
+            background-repeat:no-repeat;
+            -webkit-font-smoothing:antialiased;
+        }
+        html[data-color-mode="dark"] body{
+            background-color:var(--bgColor-default,#0d1117);
+            background-image:var(--blog-bg-image,linear-gradient(160deg,#0d1117 0%,#111a26 50%,#0d1117 100%));
+        }
+        body::before{
+            content:"";
+            position:fixed;
+            inset:0;
+            z-index:-2;
+            background:rgba(248,250,252,var(--blog-bg-dim));
+            pointer-events:none;
+        }
+        html[data-color-mode="dark"] body::before{background:rgba(2,6,12,var(--blog-bg-dim));}
+        #page{
+            position:relative;
+            z-index:1;
+            max-width:var(--blog-max);
+            margin:0 auto;
+            padding:30px 30px 20px;
+            border-radius:var(--blog-radius);
+            background:var(--blog-card);
+            border:1px solid var(--blog-border);
+            box-shadow:var(--blog-shadow);
+            backdrop-filter:blur(16px) saturate(1.15);
+            -webkit-backdrop-filter:blur(16px) saturate(1.15);
+        }
+        #header{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--blog-border);margin-bottom:18px;}
+        #header h1{margin:0;font-size:clamp(22px,5.4vw,30px);line-height:1.25;display:flex;align-items:center;gap:12px;}
+        #header h1 a{color:inherit;text-decoration:none;font-family:inherit!important;font-size:inherit!important;margin-left:0!important;font-weight:650;letter-spacing:.2px;}
+        .title-right{display:flex;align-items:center;gap:6px;margin-left:auto;}
+        .title-right button,.title-right .btn{margin:0;}
+        .avatar{width:48px;height:48px;border-radius:50%!important;object-fit:cover;box-shadow:0 4px 14px rgba(0,0,0,.12);}
+        .postTitle,.tagTitle{font-size:clamp(22px,5.4vw,32px)!important;font-family:inherit!important;font-weight:650;line-height:1.3;overflow-wrap:anywhere;}
+        #content{font-size:16px;}
+        #content > div:first-child{color:var(--blog-muted);}
+        .SideNav{min-width:0!important;border:1px solid var(--blog-border)!important;border-radius:14px;overflow:hidden;background:transparent;}
+        .SideNav-item{display:flex;padding:13px 15px;border-bottom:1px solid var(--blog-border);color:inherit;text-decoration:none;transition:background .16s ease;}
+        .SideNav-item:last-child{border-bottom:none;}
+        .SideNav-item:hover{background:rgba(127,140,160,.10);text-decoration:none;}
+        .SideNav-icon{margin-right:10px;color:var(--blog-muted);}
+        .listTitle{font-weight:520;}
+        .listLabels{display:flex;align-items:center;gap:6px;}
+        .Label{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:12px;line-height:1.6;font-weight:500;color:#fff;}
+        .LabelTime{background:rgba(127,140,160,.42)!important;color:#fff!important;}
+        .paginate-container{margin:18px 0 0;}
+        .pagination a,.pagination span{margin:0 4px;padding:5px 12px;border-radius:999px;border:1px solid var(--blog-border);text-decoration:none;color:inherit;}
+        .pagination a:hover{background:rgba(127,140,160,.12);}
+        #postBody{padding-bottom:28px;}
+        #postBody img{max-width:100%;height:auto;border-radius:12px;}
+        #postBody pre{border-radius:12px;}
+        #postBody blockquote{border-left:3px solid var(--blog-accent);padding-left:14px;color:var(--blog-muted);}
+        #cmButton{margin-top:32px;border-radius:12px;}
+        #footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--blog-border);text-align:center;font-size:13px;color:var(--blog-muted);}
+        #footer a{color:inherit;}
+        .fab{position:fixed;right:18px;z-index:60;display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:999px;border:1px solid var(--blog-border);background:var(--blog-card);color:var(--blog-fg);font-size:14px;font-weight:520;box-shadow:var(--blog-shadow);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);cursor:pointer;text-decoration:none;transition:transform .16s ease;}
+        .fab:hover{transform:translateY(-1px);text-decoration:none;color:var(--blog-fg);}
+        .fab svg{width:16px;height:16px;}
+        #writeFab{bottom:20px;}
+        #bgFab{bottom:74px;}
+        #bgPanel{position:fixed;right:18px;bottom:132px;width:min(92vw,340px);z-index:61;display:none;padding:16px;border-radius:16px;border:1px solid var(--blog-border);background:var(--blog-card);box-shadow:var(--blog-shadow);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);}
+        #bgPanel.open{display:block;}
+        #bgPanel .bg-head{display:flex;align-items:center;justify-content:space-between;font-weight:650;margin-bottom:4px;}
+        #bgPanel .bg-row{margin-top:10px;display:flex;gap:8px;align-items:center;}
+        #bgPanel input[type=text]{flex:1;min-width:0;padding:8px 10px;border-radius:10px;border:1px solid var(--blog-border);background:transparent;color:inherit;}
+        #bgPanel input[type=range]{flex:1;}
+        #bgPanel .bg-btn{padding:8px 12px;border-radius:10px;border:1px solid var(--blog-border);background:transparent;color:inherit;cursor:pointer;}
+        #bgPanel .bg-btn.primary{background:var(--blog-accent);border-color:var(--blog-accent);color:#fff;}
+        #bgPanel .bg-file{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1px dashed var(--blog-border);cursor:pointer;font-size:14px;}
+        #bgPanel .bg-file input{display:none;}
+        #bgPanel .bg-hint{margin-top:10px;font-size:12px;line-height:1.6;color:var(--blog-muted);}
+        #bgClose{border:none;background:transparent;color:inherit;font-size:20px;line-height:1;cursor:pointer;}
+        @media (max-width:600px){
+            body{padding:12px 10px 120px!important;}
+            #page{padding:18px 16px 14px;border-radius:16px;}
+            #header{gap:8px;padding-bottom:10px;margin-bottom:14px;}
+            .avatar{width:40px!important;height:40px!important;}
+            .SideNav-item{padding:11px 12px;}
+            .listLabels .LabelTime{display:none;}
+            .fab{width:46px;height:46px;padding:0;justify-content:center;border-radius:50%;}
+            .fab .fab-text{display:none;}
+            #writeFab{bottom:16px;right:14px;}
+            #bgFab{bottom:70px;right:14px;}
+            #bgPanel{right:10px;left:10px;bottom:126px;width:auto;}
+        }
+    </style>
+</head>
+{% block style %}{% endblock %}
+
+<body data-default-bg="{{ blogBase.get('backgroundImage','')|e }}" data-repo="{{ blogBase.get('repoName','MT1124/MT1124.github.io')|e }}">
+    <div id="page">
+        <div id="header">{% block header %}{% endblock %}</div>
+        <div id="content">{% block content %}{% endblock %}</div>
+        <div id="footer">{% include 'footer.html' %}</div>
+    </div>
+
+    <a id="writeFab" class="fab" href="https://github.com/{{ blogBase.get('repoName','MT1124/MT1124.github.io')|e }}/issues/new" target="_blank" rel="noopener" title="写新文章（在手机上也能用）">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z"></path></svg>
+        <span class="fab-text">写文章</span>
+    </a>
+    <button id="bgFab" class="fab" type="button" title="更换背景图">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2 2.75A1.75 1.75 0 0 1 3.75 1h8.5A1.75 1.75 0 0 1 14 2.75v10.5A1.75 1.75 0 0 1 12.25 15h-8.5A1.75 1.75 0 0 1 2 13.25V2.75Zm1.75-.25a.25.25 0 0 0-.25.25v6.36l1.9-1.9a.75.75 0 0 1 1.06 0l1.9 1.9 2.4-2.4a.75.75 0 0 1 1.06 0l1.68 1.68V2.75a.25.25 0 0 0-.25-.25H3.75Z"></path><path d="M5.5 4.25a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Z"></path></svg>
+        <span class="fab-text">背景</span>
+    </button>
+
+    <div id="bgPanel" role="dialog" aria-label="背景设置">
+        <div class="bg-head"><span>背景设置</span><button id="bgClose" type="button" title="关闭">×</button></div>
+        <div class="bg-row"><label class="bg-file">📷 从手机/电脑选图<input id="bgFile" type="file" accept="image/*"></label></div>
+        <div class="bg-row"><input id="bgUrl" type="text" placeholder="或粘贴图片链接 https://..."></div>
+        <div class="bg-row"><button id="bgApply" class="bg-btn primary" type="button">应用链接</button><button id="bgReset" class="bg-btn" type="button">恢复默认</button></div>
+        <div class="bg-row"><span style="font-size:13px;color:var(--blog-muted);white-space:nowrap;">遮罩</span><input id="bgDim" type="range" min="0" max="80" step="5" value="38"></div>
+        <div class="bg-hint">本地设置只保存在这台设备；想改全站默认背景，编辑 config.json 里的 backgroundImage。</div>
+    </div>
+</body>
+<script>
+var IconList={{ IconList }};
+var utterancesLoad=0;
+{% if blogBase['themeMode']=='manual' %}
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+{%- endif %}
+console.log("\n %c Gmeek {{ blogBase['GMEEK_VERSION'] }} https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+
+/* ---- 背景图与移动端发布按钮 ---- */
+(function(){
+    var root=document.documentElement;
+    var body=document.body;
+    var K_BG='meek_bg_image';
+    var K_DIM='meek_bg_dim';
+    var DEF_BG=body.getAttribute('data-default-bg')||'';
+
+    function cssUrl(u){
+        return 'url("'+String(u).replace(/"/g,'%22').replace(/\)/g,'%29')+'")';
+    }
+    function setBg(u){
+        if(u){root.style.setProperty('--blog-bg-image',cssUrl(u));}
+        else{root.style.removeProperty('--blog-bg-image');}
+    }
+    function setDim(v){
+        var n=(v===null||v===undefined||v==='')?38:Number(v);
+        if(isNaN(n)){n=38;}
+        root.style.setProperty('--blog-bg-dim',String(n/100));
+    }
+    function readStore(k){
+        try{return localStorage.getItem(k);}catch(e){return null;}
+    }
+    function writeStore(k,v){
+        try{
+            if(v===null){localStorage.removeItem(k);}
+            else{localStorage.setItem(k,v);}
+            return true;
+        }catch(e){return false;}
+    }
+    function applySaved(){
+        var u=readStore(K_BG);
+        var d=readStore(K_DIM);
+        setBg(u?u:DEF_BG);
+        setDim(d===null?38:d);
+        var r=document.getElementById('bgDim');
+        if(r){r.value=(d===null?38:Number(d));}
+    }
+    function applyBg(u,save){
+        var ok=true;
+        if(save){ok=writeStore(K_BG,u?u:null);}
+        setBg(u?u:DEF_BG);
+        if(!ok){alert('这张图太大了，浏览器存不下。可以换成图片链接，或选一张小一点的图。');}
+    }
+    function fileToDataUrl(file,cb){
+        var fr=new FileReader();
+        fr.onload=function(){
+            var img=new Image();
+            img.onload=function(){
+                var max=1600;
+                var w=img.width,h=img.height;
+                var s=Math.min(1,max/Math.max(w,h));
+                var c=document.createElement('canvas');
+                c.width=Math.max(1,Math.round(w*s));
+                c.height=Math.max(1,Math.round(h*s));
+                c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+                try{cb(c.toDataURL('image/jpeg',0.82));}catch(e){cb(fr.result);}
+            };
+            img.onerror=function(){cb(fr.result);};
+            img.src=fr.result;
+        };
+        fr.readAsDataURL(file);
+    }
+    applySaved();
+
+    var panel=document.getElementById('bgPanel');
+    var file=document.getElementById('bgFile');
+    var url=document.getElementById('bgUrl');
+    var dim=document.getElementById('bgDim');
+    document.getElementById('bgFab').addEventListener('click',function(){
+        panel.classList.toggle('open');
+    });
+    document.getElementById('bgClose').addEventListener('click',function(){
+        panel.classList.remove('open');
+    });
+    document.addEventListener('click',function(e){
+        if(!panel.classList.contains('open')){return;}
+        if(panel.contains(e.target)||e.target.closest('#bgFab')){return;}
+        panel.classList.remove('open');
+    });
+    document.addEventListener('keydown',function(e){
+        if(e.key==='Escape'){panel.classList.remove('open');}
+    });
+    if(file){
+        file.addEventListener('change',function(){
+            var f=file.files&&file.files[0];
+            if(!f){return;}
+            fileToDataUrl(f,function(data){applyBg(data,true);});
+        });
+    }
+    document.getElementById('bgApply').addEventListener('click',function(){
+        applyBg(url.value.trim(),true);
+    });
+    if(url){
+        url.addEventListener('keydown',function(e){
+            if(e.key==='Enter'){applyBg(url.value.trim(),true);}
+        });
+    }
+    document.getElementById('bgReset').addEventListener('click',function(){
+        writeStore(K_BG,null);
+        writeStore(K_DIM,null);
+        applyBg('',false);
+        setDim(38);
+        if(url){url.value='';}
+        if(dim){dim.value=38;}
+    });
+    if(dim){
+        dim.addEventListener('input',function(){
+            setDim(dim.value);
+            writeStore(K_DIM,dim.value);
+        });
+    }
+})();
+</script>
+{% block script %}{% endblock %}
+</html>
