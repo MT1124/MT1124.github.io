@@ -138,7 +138,6 @@
                     {% for label in postListJson[num]['labels'] -%}
                     <a class="meta-label" href="{{ blogBase['homeUrl'] }}/tag.html#{{ label }}">{{ label }}</a>
                     {%- endfor %}
-                    {% if postListJson[num]['commentNum']>0 %}<span class="meta-comment">💬 {{ postListJson[num]['commentNum'] }}</span>{% endif %}
                 </div>
             </article>
         {%- else -%}
