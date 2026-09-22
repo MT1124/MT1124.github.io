@@ -9,6 +9,7 @@ on:
       - 'config.json'
       - 'templates/**'
       - 'pwa/**'
+      - '.github/workflows/Gmeek.yml'
   schedule:
     - cron: "0 16 * * *"
     
@@ -74,6 +75,7 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: 'docs/.'
+          include-hidden-files: 'true'
           
   deploy:
     name: Deploy blog
