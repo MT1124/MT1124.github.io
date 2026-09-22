@@ -218,6 +218,8 @@ document.getElementById("{{ blogBase['singeListJson'][num]['postTitle'] }}").set
         t = t.replace(/`([^`]*)`/g, '$1');
         t = t.replace(/^\s{0,3}#{1,6}\s*/gm, '');
         t = t.replace(/^\s*>\s?/gm, '');
+        t = t.replace(/\s+([。，、！？；：）】」』!?,.;:)])/g, '$1');
+        t = t.replace(/([（【「『(])\s+/g, '$1');
         t = t.replace(/\s+/g, ' ').trim();
         if (!t) { el.style.display = 'none'; }
         else { el.textContent = t; }
