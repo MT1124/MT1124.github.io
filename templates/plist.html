@@ -154,7 +154,7 @@
                 </h3>
                 {% if postListJson[num]['description'] %}<p class="post-card-desc">{{ postListJson[num]['description']|e }}</p>{% endif %}
                 <div class="post-card-meta">
-                    <span class="meta-date">{{ postListJson[num]['createdDate'] }}</span>
+                    <span class="meta-date ts-trigger" data-ts="{{ postListJson[num]['createdAt'] }}" tabindex="0">{{ postListJson[num]['createdDate'] }}</span>
                     {% for label in postListJson[num]['labels'] -%}
                     <a class="meta-label" href="{{ blogBase['homeUrl'] }}/tag.html#{{ label }}">{{ label }}</a>
                     {%- endfor %}
