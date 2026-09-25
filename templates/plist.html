@@ -40,6 +40,17 @@
 .tag-hint{margin:2px 4px 12px;font-size:12px;line-height:1.7;color:var(--blog-muted);display:none;}
 .tag-hint a{color:var(--blog-accent-strong);}
 
+.jump-card{padding:18px 16px 16px;}
+.ts-jump-input{width:100%;box-sizing:border-box;padding:9px 11px;margin:2px 0 9px;border-radius:11px;border:1px solid var(--blog-border);background:rgba(255,255,255,.7);color:inherit;font-size:13px;font-family:inherit;}
+.ts-jump-input:focus{outline:none;border-color:var(--blog-accent);}
+html[data-color-mode="dark"] .ts-jump-input{background:rgba(255,255,255,.06);}
+.ts-jump-result{margin-top:10px;font-size:12px;line-height:1.9;color:var(--blog-muted);word-break:break-word;}
+.ts-jump-result b{color:var(--blog-accent-strong);}
+.ts-jump-best{margin-bottom:8px;}
+.ts-jump-more{margin-top:10px;display:flex;flex-direction:column;gap:4px;}
+.ts-jump-more a{color:var(--blog-accent-strong);text-decoration:none;}
+.ts-jump-more a:hover{text-decoration:underline;}
+
 .main-col{min-width:0;}
 .list-head{display:flex;align-items:baseline;justify-content:space-between;margin:2px 4px 12px;font-size:15px;font-weight:600;color:var(--blog-fg);}
 .list-head .list-count{font-size:12px;font-weight:400;color:var(--blog-muted);}
@@ -135,6 +146,12 @@
         <div class="side-card tag-card">
             <div class="tag-card-title"><span>文章标签</span><span class="tag-total" id="tagTotal"></span></div>
             <div class="tag-list" id="tagList"></div>
+        </div>
+        <div class="side-card jump-card">
+            <div class="tag-card-title"><span>按时间跳转</span><span class="tag-total">时间戳 / 日期</span></div>
+            <input id="tsJumpInput" class="ts-jump-input" placeholder="如 1790087768 或 2026-09-22 22:36" autocomplete="off">
+            <div class="ts-jump-row"><button type="button" id="tsJumpBtn" class="tag-chip active">跳到那篇文章</button></div>
+            <div class="ts-jump-result" id="tsJumpResult"></div>
         </div>
         </div>
     </aside>
@@ -333,6 +350,103 @@ document.getElementById("{{ blogBase['singeListJson'][num]['postTitle'] }}").set
         var active = currentTag();
         if (active) { apply(active); } else { render(''); }
     }).catch(function () {});
+})();
+</script>
+<script>
+(function () {
+    var input = document.getElementById('tsJumpInput');
+    var btn = document.getElementById('tsJumpBtn');
+    var out = document.getElementById('tsJumpResult');
+    if (!input || !btn || !out) { return; }
+    var posts = null, loading = false;
+
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function bjStr(ts) {
+        var d = new Date(ts * 1000 + 8 * 3600 * 1000);
+        return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()) +
+            ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes());
+    }
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function humanDiff(sec) {
+        var a = Math.abs(sec);
+        if (a < 60) { return a + ' 秒'; }
+        if (a < 3600) { return Math.round(a / 60) + ' 分钟'; }
+        if (a < 86400) { return (a / 3600).toFixed(1) + ' 小时'; }
+        return Math.round(a / 86400) + ' 天';
+    }
+    function parse(str) {
+        var v = (str || '').trim();
+        if (!v) { return null; }
+        if (/^\d{13}$/.test(v)) { return Math.floor(parseInt(v, 10) / 1000); }
+        if (/^\d{10}$/.test(v)) { return parseInt(v, 10); }
+        var m = /^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/.exec(v);
+        if (m) {
+            return Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3], (m[4] ? +m[4] : 0) - 8, m[5] ? +m[5] : 0, m[6] ? +m[6] : 0) / 1000);
+        }
+        var t = Date.parse(v);
+        return isNaN(t) ? null : Math.floor(t / 1000);
+    }
+    function load(cb) {
+        if (posts) { cb(posts); return; }
+        if (loading) { setTimeout(function () { load(cb); }, 200); return; }
+        loading = true;
+        out.textContent = '正在读取文章时间…';
+        fetch('/rss.xml').then(function (r) { return r.ok ? r.text() : ''; }).then(function (xml) {
+            var list = [];
+            if (xml) {
+                var doc = new DOMParser().parseFromString(xml, 'application/xml');
+                var items = doc.getElementsByTagName('item');
+                for (var i = 0; i < items.length; i++) {
+                    var link = (items[i].getElementsByTagName('link')[0] || {}).textContent || '';
+                    var title = (items[i].getElementsByTagName('title')[0] || {}).textContent || '无标题';
+                    var pub = (items[i].getElementsByTagName('pubDate')[0] || {}).textContent || '';
+                    var d = new Date(pub);
+                    if (link && !isNaN(d.getTime())) { list.push({ ts: Math.floor(d.getTime() / 1000), title: title, link: link }); }
+                }
+            }
+            list.sort(function (a, b) { return a.ts - b.ts; });
+            posts = list; loading = false; cb(posts);
+        }).catch(function () { loading = false; cb([]); });
+    }
+    function go(ts) {
+        load(function (list) {
+            if (!list.length) { out.textContent = '没有读取到文章时间，请稍后重试'; return; }
+            var scored = list.map(function (p) { return { p: p, d: p.ts - ts }; });
+            scored.sort(function (a, b) { return Math.abs(a.d) - Math.abs(b.d); });
+            var best = scored[0];
+            out.innerHTML = '';
+            var line = document.createElement('div');
+            line.className = 'ts-jump-best';
+            line.innerHTML = '最接近：<b>' + bjStr(best.p.ts) + '</b> 《' + esc(best.p.title) + '》<br>相差 ' + humanDiff(best.d);
+            out.appendChild(line);
+            var open = document.createElement('a');
+            open.className = 'tag-chip active';
+            open.href = best.p.link;
+            open.textContent = '打开这篇';
+            out.appendChild(open);
+            if (scored.length > 1) {
+                var more = document.createElement('div');
+                more.className = 'ts-jump-more';
+                var label = document.createElement('div');
+                label.textContent = '其他接近的文章：';
+                more.appendChild(label);
+                scored.slice(1, 4).forEach(function (s) {
+                    var a = document.createElement('a');
+                    a.href = s.p.link;
+                    a.textContent = bjStr(s.p.ts) + ' 《' + s.p.title + '》';
+                    more.appendChild(a);
+                });
+                out.appendChild(more);
+            }
+            if (Math.abs(best.d) <= 60) { location.href = best.p.link; }
+        });
+    }
+    btn.addEventListener('click', function () {
+        var ts = parse(input.value);
+        if (ts === null) { out.textContent = '识别不了，请输入时间戳（如 1790087768）或日期（2026-09-22 22:36）'; return; }
+        go(ts);
+    });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { btn.click(); } });
 })();
 </script>
 {{ blogBase['indexScript'] }}
