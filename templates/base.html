@@ -320,7 +320,7 @@ console.log("\n %c Gmeek {{ blogBase['GMEEK_VERSION'] }} https://github.com/Meek
 (function () {
     var TZ_OFFSET = 8 * 3600 * 1000;
     var WEEK = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-    var pop = null, curEl = null, hideTimer = null;
+    var pop = null, curEl = null, hideTimer = null, byHover = false;
 
     function pad(n) { return n < 10 ? '0' + n : '' + n; }
     function bj(ts) {
@@ -413,6 +413,7 @@ console.log("\n %c Gmeek {{ blogBase['GMEEK_VERSION'] }} https://github.com/Meek
         pop.classList.remove('open');
         if (curEl) { curEl.classList.remove('ts-active'); }
         curEl = null;
+        byHover = false;
     }
     function scheduleHide() {
         if (hideTimer) { clearTimeout(hideTimer); }
@@ -426,7 +427,7 @@ console.log("\n %c Gmeek {{ blogBase['GMEEK_VERSION'] }} https://github.com/Meek
     });
     document.addEventListener('mouseover', function (e) {
         var el = e.target.closest && e.target.closest('.ts-trigger[data-ts]');
-        if (el) { if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } show(el); }
+        if (el) { if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } show(el); byHover = true; }
     });
     document.addEventListener('mouseout', function (e) {
         var el = e.target.closest && e.target.closest('.ts-trigger[data-ts]');
@@ -436,7 +437,8 @@ console.log("\n %c Gmeek {{ blogBase['GMEEK_VERSION'] }} https://github.com/Meek
         var el = e.target.closest && e.target.closest('.ts-trigger[data-ts]');
         if (el) {
             e.preventDefault(); e.stopPropagation();
-            if (curEl === el && pop && pop.classList.contains('open')) { hide(); } else { show(el); }
+            if (byHover && curEl === el && pop && pop.classList.contains('open')) { byHover = false; return; }
+            if (curEl === el && pop && pop.classList.contains('open')) { hide(); } else { show(el); byHover = false; }
             return;
         }
         if (pop && pop.classList.contains('open') && !pop.contains(e.target)) { hide(); }
