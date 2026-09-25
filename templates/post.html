@@ -121,14 +121,14 @@
     var el=document.getElementById("postTimeTrigger");
     var wrap=document.getElementById("postMeta");
     if(!el||!wrap){return;}
-    var here=(location.origin+location.pathname).replace(/\/$/,'');
+    var here=(location.origin+location.pathname).replace(/\/$/,'').toLowerCase();
     fetch('/rss.xml').then(function(r){return r.ok?r.text():'';}).then(function(xml){
         if(!xml){return;}
         var doc=new DOMParser().parseFromString(xml,'application/xml');
         var items=doc.getElementsByTagName('item');
         for(var i=0;i<items.length;i++){
             var link=(items[i].getElementsByTagName('link')[0]||{}).textContent||'';
-            if(link.replace(/\/$/,'')!==here){continue;}
+            if(link.replace(/\/$/,'').toLowerCase()!==here){continue;}
             var pub=(items[i].getElementsByTagName('pubDate')[0]||{}).textContent||'';
             var d=new Date(pub);
             if(isNaN(d.getTime())){break;}
