@@ -183,6 +183,19 @@
         #bgPanel .bg-file input{display:none;}
         #bgPanel .bg-hint{margin-top:10px;font-size:12px;line-height:1.6;color:var(--blog-muted);}
         #bgClose{border:none;background:transparent;color:inherit;font-size:20px;line-height:1;cursor:pointer;}
+
+        /* 唤起式时间戳（QQ空间风格） */
+        .ts-trigger{cursor:pointer;position:relative;z-index:2;border-bottom:1px dashed var(--blog-border);}
+        .ts-trigger:hover,.ts-trigger:focus,.ts-trigger.ts-active{color:var(--blog-accent-strong);border-bottom-color:var(--blog-accent);outline:none;}
+        #tsPop{position:fixed;z-index:300;display:none;min-width:196px;max-width:min(92vw,300px);padding:14px 16px 12px;border-radius:14px;border:1px solid var(--blog-border);background:var(--blog-card);box-shadow:var(--blog-shadow);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);transform-origin:top center;}
+        #tsPop.open{display:block;animation:tsIn .18s ease;}
+        @keyframes tsIn{from{opacity:0;transform:translateY(-6px) scale(.96);}to{opacity:1;transform:none;}}
+        #tsPop .ts-date{font-size:15px;font-weight:650;color:var(--blog-fg);line-height:1.4;}
+        #tsPop .ts-time{margin-top:4px;font-size:13px;color:var(--blog-accent-strong);}
+        #tsPop .ts-extra{margin-top:7px;font-size:12px;line-height:1.7;color:var(--blog-muted);word-break:break-all;}
+        #tsPop .ts-copy{margin-top:10px;padding:6px 12px;border-radius:10px;border:1px solid var(--blog-border);background:transparent;color:inherit;font-size:12px;cursor:pointer;}
+        #tsPop .ts-copy:hover{border-color:var(--blog-accent);color:var(--blog-accent-strong);}
+        #tsPop .ts-arrow{position:absolute;width:10px;height:10px;background:var(--blog-card);border-left:1px solid var(--blog-border);border-top:1px solid var(--blog-border);transform:rotate(45deg);}
         @media (max-width:600px){
             body{padding:10px 10px 120px!important;}
             #header{top:8px;gap:8px;padding:10px 12px;margin-bottom:12px;border-radius:14px;}
@@ -213,6 +226,7 @@
 .comment-title{font-size:16px;font-weight:650;margin-bottom:14px;padding-left:10px;border-left:3px solid var(--blog-accent);}
 .comment-box{padding:16px;border-radius:16px;border:1px solid var(--blog-border);background:var(--blog-card);backdrop-filter:blur(16px) saturate(1.15);-webkit-backdrop-filter:blur(16px) saturate(1.15);box-shadow:var(--blog-shadow);}
 .comment-box a{color:var(--blog-accent-strong);}
+.post-meta{margin:0 0 18px;font-size:13px;color:var(--blog-muted);}
 @media (max-width: 600px){
     .postTitle{font-size:22px;}
     .comment-box{padding:12px;}
@@ -246,6 +260,7 @@
 </header>
     <main id="page">
         <div id="content">
+<div class="post-meta" id="postMeta" style="display:none;"><span class="ts-trigger" id="postTimeTrigger" tabindex="0"></span></div>
 <div class="markdown-body" id="postBody"><p>这个宇宙需要很多的测试</p>
 <p><a target="_blank" rel="noopener noreferrer nofollow" href="https://camo.githubusercontent.com/7293fdb2c67b09d69bf4b973fbb1533c2f30293a360c7389b025d2d2db65e8c8/68747470733a2f2f6d74313132342e6769746875622e696f2f696d616765732f38346365653464666536373362306433346563323831363938393461346363345f3732302d313739303038373736303639382d302e6a7067"><img src="https://camo.githubusercontent.com/7293fdb2c67b09d69bf4b973fbb1533c2f30293a360c7389b025d2d2db65e8c8/68747470733a2f2f6d74313132342e6769746875622e696f2f696d616765732f38346365653464666536373362306433346563323831363938393461346363345f3732302d313739303038373736303639382d302e6a7067" alt="" data-canonical-src="https://mt1124.github.io/images/84cee4dfe673b0d34ec28169894a4cc4_720-1790087760698-0.jpg" style="max-width: 100%;"></a></p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
@@ -419,6 +434,136 @@ function utterancesTheme(theme){
 if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
 console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
 
+/* ---- 唤起式时间戳 ---- */
+(function () {
+    var TZ_OFFSET = 8 * 3600 * 1000;
+    var WEEK = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    var pop = null, curEl = null, hideTimer = null;
+
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function bj(ts) {
+        var d = new Date(ts * 1000 + TZ_OFFSET);
+        return {
+            y: d.getUTCFullYear(), mo: d.getUTCMonth() + 1, da: d.getUTCDate(),
+            h: d.getUTCHours(), mi: d.getUTCMinutes(), s: d.getUTCSeconds(), w: d.getUTCDay()
+        };
+    }
+    function bjDate(ts) {
+        var b = bj(ts);
+        return b.y + '-' + pad(b.mo) + '-' + pad(b.da);
+    }
+    function rel(ts) {
+        var diff = Date.now() - ts * 1000;
+        if (diff < 60000) { return '刚刚'; }
+        var m = Math.floor(diff / 60000);
+        if (m < 60) { return m + ' 分钟前'; }
+        var h = Math.floor(m / 60);
+        if (h < 24) { return h + ' 小时前'; }
+        var d = Math.floor(h / 24);
+        if (d < 31) { return d + ' 天前'; }
+        return Math.floor(d / 30) + ' 个月前';
+    }
+
+    function build() {
+        if (pop) { return pop; }
+        pop = document.createElement('div');
+        pop.id = 'tsPop';
+        pop.innerHTML = '<div class="ts-arrow"></div>' +
+            '<div class="ts-date"></div><div class="ts-time"></div><div class="ts-extra"></div>' +
+            '<button type="button" class="ts-copy">复制时间</button>';
+        pop.addEventListener('mouseenter', function () { if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } });
+        pop.addEventListener('mouseleave', scheduleHide);
+        pop.querySelector('.ts-copy').addEventListener('click', function (e) {
+            e.preventDefault(); e.stopPropagation();
+            var txt = pop.getAttribute('data-copy') || '';
+            var btn = this;
+            function done() { var old = btn.textContent; btn.textContent = '已复制'; setTimeout(function () { btn.textContent = old; }, 1200); }
+            if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done, done); }
+            else {
+                var ta = document.createElement('textarea');
+                ta.value = txt; document.body.appendChild(ta); ta.select();
+                try { document.execCommand('copy'); } catch (err) {}
+                document.body.removeChild(ta); done();
+            }
+        });
+        document.body.appendChild(pop);
+        return pop;
+    }
+
+    function place(el) {
+        var box = el.getBoundingClientRect();
+        var pw = pop.offsetWidth, ph = pop.offsetHeight;
+        var left = box.left + box.width / 2 - pw / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
+        var top = box.top - ph - 10;
+        var arrowTop = true;
+        if (top < 8) { top = box.bottom + 10; arrowTop = false; }
+        pop.style.left = left + 'px';
+        pop.style.top = top + 'px';
+        var arrow = pop.querySelector('.ts-arrow');
+        var ax = box.left + box.width / 2 - left - 5;
+        ax = Math.max(10, Math.min(ax, pw - 20));
+        arrow.style.left = ax + 'px';
+        if (arrowTop) { arrow.style.top = 'auto'; arrow.style.bottom = '-6px'; arrow.style.transform = 'rotate(225deg)'; }
+        else { arrow.style.bottom = 'auto'; arrow.style.top = '-6px'; arrow.style.transform = 'rotate(45deg)'; }
+    }
+
+    function show(el) {
+        var ts = parseInt(el.getAttribute('data-ts'), 10);
+        if (!ts) { return; }
+        build();
+        var b = bj(ts);
+        var dateStr = b.y + '年' + b.mo + '月' + b.da + '日 ' + WEEK[b.w];
+        var timeStr = pad(b.h) + ':' + pad(b.mi) + ':' + pad(b.s) + '（北京时间 UTC+8）';
+        var plain = b.y + '-' + pad(b.mo) + '-' + pad(b.da) + ' ' + pad(b.h) + ':' + pad(b.mi) + ':' + pad(b.s);
+        pop.querySelector('.ts-date').textContent = dateStr;
+        pop.querySelector('.ts-time').textContent = timeStr;
+        pop.querySelector('.ts-extra').textContent = rel(ts) + ' · 时间戳 ' + ts;
+        pop.setAttribute('data-copy', plain);
+        pop.classList.add('open');
+        place(el);
+        if (curEl && curEl !== el) { curEl.classList.remove('ts-active'); }
+        curEl = el;
+        curEl.classList.add('ts-active');
+    }
+    function hide() {
+        if (!pop) { return; }
+        pop.classList.remove('open');
+        if (curEl) { curEl.classList.remove('ts-active'); }
+        curEl = null;
+    }
+    function scheduleHide() {
+        if (hideTimer) { clearTimeout(hideTimer); }
+        hideTimer = setTimeout(hide, 220);
+    }
+
+    Array.prototype.slice.call(document.querySelectorAll('.ts-trigger[data-ts]')).forEach(function (el) {
+        var ts = parseInt(el.getAttribute('data-ts'), 10);
+        if (ts && !el.textContent.trim()) { el.textContent = bjDate(ts); }
+        if (ts && /^\d{4}-\d{2}-\d{2}$/.test(el.textContent.trim())) { el.textContent = bjDate(ts); }
+    });
+    document.addEventListener('mouseover', function (e) {
+        var el = e.target.closest && e.target.closest('.ts-trigger[data-ts]');
+        if (el) { if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } show(el); }
+    });
+    document.addEventListener('mouseout', function (e) {
+        var el = e.target.closest && e.target.closest('.ts-trigger[data-ts]');
+        if (el) { scheduleHide(); }
+    });
+    document.addEventListener('click', function (e) {
+        var el = e.target.closest && e.target.closest('.ts-trigger[data-ts]');
+        if (el) {
+            e.preventDefault(); e.stopPropagation();
+            if (curEl === el && pop && pop.classList.contains('open')) { hide(); } else { show(el); }
+            return;
+        }
+        if (pop && pop.classList.contains('open') && !pop.contains(e.target)) { hide(); }
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { hide(); } });
+    window.addEventListener('scroll', function () { if (pop && pop.classList.contains('open') && curEl) { place(curEl); } }, { passive: true });
+    window.addEventListener('resize', function () { hide(); });
+})();
+
 /* ---- 背景图与移动端发布按钮 ---- */
 (function(){
     var root=document.documentElement;
@@ -553,6 +698,31 @@ console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 
     if(home){home.setAttribute("d",IconList["home"]);}
     var issue=document.getElementById("pathIssue");
     if(issue){issue.setAttribute("d",IconList["github"]);}
+})();
+(function(){
+    var el=document.getElementById("postTimeTrigger");
+    var wrap=document.getElementById("postMeta");
+    if(!el||!wrap){return;}
+    var here=(location.origin+location.pathname).replace(/\/$/,'');
+    fetch('/rss.xml').then(function(r){return r.ok?r.text():'';}).then(function(xml){
+        if(!xml){return;}
+        var doc=new DOMParser().parseFromString(xml,'application/xml');
+        var items=doc.getElementsByTagName('item');
+        for(var i=0;i<items.length;i++){
+            var link=(items[i].getElementsByTagName('link')[0]||{}).textContent||'';
+            if(link.replace(/\/$/,'')!==here){continue;}
+            var pub=(items[i].getElementsByTagName('pubDate')[0]||{}).textContent||'';
+            var d=new Date(pub);
+            if(isNaN(d.getTime())){break;}
+            var ts=Math.floor(d.getTime()/1000);
+            el.setAttribute('data-ts',ts);
+            var bj=new Date(ts*1000+8*3600*1000);
+            var p=function(n){return n<10?'0'+n:''+n;};
+            el.textContent=bj.getUTCFullYear()+'-'+p(bj.getUTCMonth()+1)+'-'+p(bj.getUTCDate())+' '+p(bj.getUTCHours())+':'+p(bj.getUTCMinutes());
+            wrap.style.display='';
+            break;
+        }
+    }).catch(function(){});
 })();
 </script>
 
